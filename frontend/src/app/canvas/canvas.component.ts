@@ -1,4 +1,5 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
+import { getHeightWidthWithOffset } from './utils';
 
 @Component({
   selector: 'app-canvas',
@@ -9,11 +10,16 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 })
 export class CanvasComponent {
   @ViewChild("imageCanvas", { static: true }) private canvas: ElementRef = {} as ElementRef;
+  @Output() onCropButtonClick = new EventEmitter<string>();
+
 
   private context!: CanvasRenderingContext2D | null;
   private path: Path2D = new Path2D();
   private isDrawing: boolean = false;
   private canvasImage: HTMLImageElement = new Image();
+
+  isCropBtnDisabled: boolean = true;
+  isImageUploaded: boolean = false;
 
   constructor() {
 
@@ -22,12 +28,30 @@ export class CanvasComponent {
     const canvas: HTMLCanvasElement = this.canvas.nativeElement;
     this.context = canvas.getContext("2d");
     this.addEventsToCanvas()
+
+    // * loading default image
+    const img = new Image();
+    img.src = "image.jpg"
+
+    img.onload = () => {
+      if (this.context) {
+        const canvas: HTMLCanvasElement = this.canvas.nativeElement;
+        this.context.clearRect(0, 0, canvas.width, canvas.height);
+        const dimensions = getHeightWidthWithOffset(canvas.height, canvas.width, img.height, img.width);
+        this.context.drawImage(img, dimensions.offsetX, dimensions.offsetY, dimensions.width, dimensions.height);
+      }
+    };
+    // * end of loading default image
+
   }
   addEventsToCanvas() {
     const canvas: HTMLCanvasElement = this.canvas.nativeElement
     canvas.addEventListener('mousedown', (e) => {
-      this.isDrawing = true;
-      this.path.moveTo(e.offsetX, e.offsetY);
+      if (this.isImageUploaded) {
+        this.isCropBtnDisabled = false;
+        this.isDrawing = true;
+        this.path.moveTo(e.offsetX, e.offsetY);
+      }
     });
 
     canvas.addEventListener('mousemove', (e) => {
@@ -54,15 +78,13 @@ export class CanvasComponent {
         this.canvasImage = img;
 
         img.onload = () => {
-          if (this.context) {
-            const canvas: HTMLCanvasElement = this.canvas.nativeElement;
-            this.context.clearRect(0, 0, canvas.width, canvas.height);
-            this.context.drawImage(img, 0, 0, canvas.width, canvas.height);
-          }
+          this.drawImageInsideCanvas();
         };
       };
+      reader.readAsDataURL(file);
 
-      reader.readAsDataURL(file);  // Read file as data URL
+      this.isCropBtnDisabled = true;
+      this.isImageUploaded = true;
     }
   }
   onUploadClick(): void {
@@ -84,10 +106,19 @@ export class CanvasComponent {
     croppedContext?.closePath();
 
     const dataURL = croppedCanvas.toDataURL('image/png');
-    console.log(dataURL);
+    this.onCropButtonClick.emit(dataURL);
 
-    this.context?.clearRect(0, 0, canvas.width, canvas.height)
-    this.context?.drawImage(this.canvasImage, 0, 0, canvas.width, canvas.height);
+    this.drawImageInsideCanvas()
     this.path = new Path2D()
+    this.isCropBtnDisabled = true;
+  }
+
+  drawImageInsideCanvas(): void {
+    const canvas: HTMLCanvasElement = this.canvas.nativeElement;
+    const img = this.canvasImage;
+    const dimensions = getHeightWidthWithOffset(canvas.height, canvas.width, img.height, img.width);
+
+    this.context?.clearRect(0, 0, canvas.width, canvas.height);
+    this.context?.drawImage(img, dimensions.offsetX, dimensions.offsetY, dimensions.width, dimensions.height);
   }
 }

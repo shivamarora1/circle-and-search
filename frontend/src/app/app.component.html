@@ -1,5 +1,8 @@
 <main class="main">
-  <app-canvas></app-canvas>
-  <div (click)="sendData($event)">Click Me</div>
+  <div class="image-canvas">
+    <app-canvas (onCropButtonClick)="onCropButtonClicked($event)"></app-canvas>
+  </div>
+  
+  <app-search-result ng-if= "searchResult" [items]="searchResult"></app-search-result>
 </main>
 <router-outlet />

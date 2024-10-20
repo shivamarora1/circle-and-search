@@ -1,4 +1,8 @@
-<canvas #imageCanvas id="imageCanvas" width="500" height="500"></canvas>
-<button (click)="onUploadClick()">Upload Image</button>
-<button id="cropButton" (click)="onCropClick($event)">Crop Image</button>
-<input type="file" id="fileInput" (change)="onFileSelected($event)" accept="image/*" style="display:none;" />
+<div class="canvas-container">
+  <canvas class= "google-border" #imageCanvas id="imageCanvas" width="600" height="500"></canvas>
+  <div class="btn-container">
+    <button class="mr google-button" (click)="onUploadClick()">Upload Image</button>
+    <button id="cropButton" class="google-button ml" (click)="onCropClick($event)" [disabled]="isCropBtnDisabled">Crop Image</button>
+  </div>
+  <input type="file" id="fileInput" (change)="onFileSelected($event)" accept="image/*" style="display:none;" />
+</div>
