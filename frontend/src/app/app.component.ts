@@ -1,13 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, NgModule } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CanvasComponent } from './canvas/canvas.component';
 import { DataService } from './data.service';
 import { SearchResultComponent } from './search-result/search-result.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CanvasComponent, SearchResultComponent],
+  imports: [CommonModule, RouterOutlet, CanvasComponent, SearchResultComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

@@ -2,7 +2,9 @@
   <div class="image-canvas">
     <app-canvas (onCropButtonClick)="onCropButtonClicked($event)"></app-canvas>
   </div>
-  
-  <app-search-result ng-if= "searchResult" [items]="searchResult"></app-search-result>
+  <div class="result-container google-panel">
+    <h2 class="panel-title">Search Result</h2>
+    <app-search-result ng-if="searchResult" [items]="searchResult"></app-search-result>
+  </div>
 </main>
 <router-outlet />
