@@ -1,0 +1,5 @@
+Running app:
+```
+vercel dev
+```
+
