@@ -24,38 +24,16 @@ app.get("/", (req, res) => {
 app.post("/result", async (req, res) => {
   const data = req.body;
   console.log(data);
-
-  const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || "";
-  const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || "";
-  const AWS_DEFAULT_REGION = process.env.AWS_DEFAULT_REGION || "";
-
-  const client = new BedrockRuntimeClient({
-    region: AWS_DEFAULT_REGION,
-    credentials: {
-      accessKeyId: AWS_ACCESS_KEY_ID,
-      secretAccessKey: AWS_SECRET_ACCESS_KEY,
-    },
-  });
-  const instruction = `<s>[INST] Complete this sentence . A white fox with women like face [/INST]`;
-
-  const payload = {
-    prompt: instruction,
-    max_tokens: 500,
-    temperature: 0.5,
-  };
-
-  const modelId = "mistral.mistral-7b-instruct-v0:2";
-  const command = new InvokeModelCommand({
-    contentType: "application/json",
-    body: JSON.stringify(payload),
-    modelId,
-  });
-  const apiResponse = await client.send(command);
-  const decodedResponseBody = new TextDecoder().decode(apiResponse.body);
-
-  const responseBody = JSON.parse(decodedResponseBody);
-  console.log(responseBody.outputs[0].text);
-  // ! end of testing code...
+  // ! validate all fields before handling ...
+  // ! may be better error handling ?
+  // ! check whether it is giving correct error or not ?
+  try {
+    const embeddings = await base64ToEmbeddings(data.base64);
+    console.log(embeddings);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error, pls try again later." });
+  }
 
   const res_data = [
     {
@@ -123,3 +101,34 @@ app.listen(port, () => {
 });
 
 export default app;
+
+const base64ToEmbeddings = async (imageBase64: string): Promise<any> => {
+  const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || "";
+  const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || "";
+  const AWS_DEFAULT_REGION = process.env.AWS_DEFAULT_REGION || "";
+
+  const client = new BedrockRuntimeClient({
+    region: AWS_DEFAULT_REGION,
+    credentials: {
+      accessKeyId: AWS_ACCESS_KEY_ID,
+      secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    },
+  });
+
+  const payload = {
+    inputImage: imageBase64,
+  };
+
+  const modelId = "amazon.titan-embed-image-v1";
+  const command = new InvokeModelCommand({
+    contentType: "application/json",
+    accept: "application/json",
+    body: JSON.stringify(payload),
+    modelId,
+  });
+
+  const apiResponse = await client.send(command);
+  const decodedResponseBody = new TextDecoder().decode(apiResponse.body);
+  const responseBody = JSON.parse(decodedResponseBody);
+  return responseBody["embedding"];
+};
