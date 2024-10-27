@@ -3,14 +3,23 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
+import { base64ToEmbeddings } from "./utils";
+import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || "";
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || "";
+const AWS_DEFAULT_REGION = process.env.AWS_DEFAULT_REGION || "";
+
+const bedrockClient = new BedrockRuntimeClient({
+  region: AWS_DEFAULT_REGION,
+  credentials: {
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  },
+});
 
 const app = express();
 const port = process.env.PORT;
-import {
-  BedrockRuntimeClient,
-  InvokeModelCommand,
-} from "@aws-sdk/client-bedrock-runtime";
-
 const corsOptions = {
   origin: process.env.FRONTEND_URL,
 };
@@ -28,7 +37,7 @@ app.post("/result", async (req, res) => {
   // ! may be better error handling ?
   // ! check whether it is giving correct error or not ?
   try {
-    const embeddings = await base64ToEmbeddings(data.base64);
+    const embeddings = await base64ToEmbeddings(bedrockClient, data.base64);
     console.log(embeddings);
   } catch (err) {
     console.error(err);
@@ -102,33 +111,3 @@ app.listen(port, () => {
 
 export default app;
 
-const base64ToEmbeddings = async (imageBase64: string): Promise<any> => {
-  const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || "";
-  const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || "";
-  const AWS_DEFAULT_REGION = process.env.AWS_DEFAULT_REGION || "";
-
-  const client = new BedrockRuntimeClient({
-    region: AWS_DEFAULT_REGION,
-    credentials: {
-      accessKeyId: AWS_ACCESS_KEY_ID,
-      secretAccessKey: AWS_SECRET_ACCESS_KEY,
-    },
-  });
-
-  const payload = {
-    inputImage: imageBase64,
-  };
-
-  const modelId = "amazon.titan-embed-image-v1";
-  const command = new InvokeModelCommand({
-    contentType: "application/json",
-    accept: "application/json",
-    body: JSON.stringify(payload),
-    modelId,
-  });
-
-  const apiResponse = await client.send(command);
-  const decodedResponseBody = new TextDecoder().decode(apiResponse.body);
-  const responseBody = JSON.parse(decodedResponseBody);
-  return responseBody["embedding"];
-};
