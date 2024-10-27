@@ -5,7 +5,10 @@ import express from "express";
 import cors from "cors";
 import { base64ToEmbeddings } from "./utils";
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+import { MilvusClient } from "@zilliz/milvus2-sdk-node";
+import multer from "multer";
 
+// * initializing required clients
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || "";
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || "";
 const AWS_DEFAULT_REGION = process.env.AWS_DEFAULT_REGION || "";
@@ -18,11 +21,20 @@ const bedrockClient = new BedrockRuntimeClient({
   },
 });
 
+const address = process.env.MILVUS_ENDPOINT || "";
+const token = process.env.MILVUS_TOKEN;
+const collectionName = "amazon_products";
+
+const milvusClient = new MilvusClient({ address, token });
+// *
+
 const app = express();
 const port = process.env.PORT;
 const corsOptions = {
   origin: process.env.FRONTEND_URL,
 };
+
+const upload = multer();
 
 app.use(express.json());
 app.use(cors(corsOptions));
@@ -30,79 +42,45 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.post("/result", async (req, res) => {
+app.post("/result", upload.none(), async (req, res) => {
+  console.log(req.body);
   const data = req.body;
-  console.log(data);
-  // ! validate all fields before handling ...
-  // ! may be better error handling ?
-  // ! check whether it is giving correct error or not ?
+
+  if (!data.base64) {
+    res.status(400).json("empty base64 string.");
+    return;
+  }
   try {
-    const embeddings = await base64ToEmbeddings(bedrockClient, data.base64);
-    console.log(embeddings);
+    const base64Data = data.base64.split(",")[1];
+    const embeddings = await base64ToEmbeddings(bedrockClient, base64Data);
+
+    const fetchedResults = await milvusClient.search({
+      collection_name: collectionName,
+      data: [embeddings],
+      limit: 20,
+      output_fields: [
+        "name",
+        "discount_price",
+        "actual_price",
+        "main_category",
+        "sub_category",
+        "link",
+        "image",
+        "ratings",
+      ],
+    });
+
+    const uniqueKeys = new Map();
+    fetchedResults.results.forEach((resItem) => {
+      uniqueKeys.set(resItem["image"], resItem);
+    });
+    const uniqueValues = Array.from(uniqueKeys.values());
+
+    res.status(200).json(uniqueValues);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error, pls try again later." });
   }
-
-  const res_data = [
-    {
-      title: "Wireless Bluetooth Headphones",
-      image_url:
-        "https://m.media-amazon.com/images/I/51QpBpTTBQL._AC_UL320_.jpg",
-      rating: 4.5,
-      description:
-        "High-quality wireless Bluetooth headphones with noise cancellation.",
-      link: "https://example.com/product/headphones",
-      actual_price: 99.99,
-      discount_price: 79.99,
-    },
-    {
-      title: "Smart LED TV 55-inch",
-      image_url:
-        "https://m.media-amazon.com/images/I/71zP3rSXR0L._AC_UL320_.jpg",
-      rating: 4.8,
-      description:
-        "Ultra HD 4K Smart LED TV with voice control and built-in streaming apps.",
-      link: "https://example.com/product/tv",
-      actual_price: 799.99,
-      discount_price: 699.99,
-    },
-    {
-      title: "Gaming Laptop",
-      image_url:
-        "https://m.media-amazon.com/images/I/71niDOUbw8L._AC_UL320_.jpg",
-      rating: 4.7,
-      description:
-        "Powerful gaming laptop with Intel i7 processor and NVIDIA RTX graphics.",
-      link: "https://example.com/product/laptop",
-      actual_price: 1299.99,
-      discount_price: 1099.99,
-    },
-    {
-      title: "Smartwatch with Fitness Tracker",
-      image_url:
-        "https://m.media-amazon.com/images/I/51ODU7VRAeL._AC_UL320_.jpg",
-      rating: 4.3,
-      description:
-        "Stylish smartwatch with heart rate monitor, GPS, and fitness tracking.",
-      link: "https://example.com/product/smartwatch",
-      actual_price: 199.99,
-      discount_price: 149.99,
-    },
-    {
-      title: "Home Security Camera",
-      image_url:
-        "https://m.media-amazon.com/images/I/51Pdde9M1RL._AC_UL320_.jpg",
-      rating: 4.6,
-      description:
-        "HD home security camera with night vision, motion detection, and cloud storage.",
-      link: "https://example.com/product/camera",
-      actual_price: 89.99,
-      discount_price: 59.99,
-    },
-  ];
-
-  res.json(res_data);
 });
 
 app.listen(port, () => {
@@ -110,4 +88,3 @@ app.listen(port, () => {
 });
 
 export default app;
-

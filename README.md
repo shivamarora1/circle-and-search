@@ -37,6 +37,3 @@ flowchart LR
     B -- Generate vectors --> C[(Vector DB)]
 
 ```
-
-<b> Open Questions: </b>
-1. Which algorithm to use for vector generation of images.

@@ -20,12 +20,10 @@ export class AppComponent {
 
   }
   onCropButtonClicked(event: any) {
-    console.log(event);
-    const postData = {
-      base64Img: event,
-    };
+    const formData = new FormData();
+    formData.append("base64",event);
 
-    this.dataService.postData(postData).subscribe(response => {
+    this.dataService.postData(formData).subscribe(response => {
       console.log('Data posted successfully:', response);
       this.searchResult = response;
     }, error => {
