@@ -5,8 +5,8 @@ import express from "express";
 import cors from "cors";
 import { base64ToEmbeddings } from "./utils";
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
-import { MilvusClient } from "@zilliz/milvus2-sdk-node";
 import multer from "multer";
+import axios from "axios";
 
 // * initializing required clients
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || "";
@@ -24,8 +24,6 @@ const bedrockClient = new BedrockRuntimeClient({
 const address = process.env.MILVUS_ENDPOINT || "";
 const token = process.env.MILVUS_TOKEN;
 const collectionName = "amazon_products";
-
-const milvusClient = new MilvusClient({ address, token });
 // *
 
 const app = express();
@@ -54,11 +52,12 @@ app.post("/result", upload.none(), async (req, res) => {
     const base64Data = data.base64.split(",")[1];
     const embeddings = await base64ToEmbeddings(bedrockClient, base64Data);
 
-    const fetchedResults = await milvusClient.search({
-      collection_name: collectionName,
-      data: [embeddings],
-      limit: 20,
-      output_fields: [
+    const postData = {
+      "collectionName": collectionName,
+      "data": [embeddings],
+      "annsField": "image_vector",
+      "limit": 20,
+      "outputFields": [
         "name",
         "discount_price",
         "actual_price",
@@ -67,16 +66,23 @@ app.post("/result", upload.none(), async (req, res) => {
         "link",
         "image",
         "ratings",
-      ],
-    });
+      ]
+    };
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    };
+    const milvusResp = await axios.post(`${address}/v1/vector/query`, postData, { headers })
+    const fetchedResults: Array<any> = milvusResp.data.data
 
     const uniqueKeys = new Map();
-    fetchedResults.results.forEach((resItem) => {
+    fetchedResults.forEach((resItem) => {
       uniqueKeys.set(resItem["image"], resItem);
     });
     const uniqueValues = Array.from(uniqueKeys.values());
 
-    res.status(200).json(uniqueValues);
+    res.status(200).json( uniqueValues );
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error, pls try again later." });
