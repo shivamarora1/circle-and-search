@@ -10,7 +10,6 @@
   "description": "",
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.675.0",
-    "@zilliz/milvus2-sdk-node": "^2.4.9",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "csv-parser": "^3.0.0",
