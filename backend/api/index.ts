@@ -73,7 +73,7 @@ app.post("/result", upload.none(), async (req, res) => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     };
-    const milvusResp = await axios.post(`${address}/v1/vector/query`, postData, { headers })
+    const milvusResp = await axios.post(`${address}/v2/vectordb/entities/search`, postData, { headers })
     const fetchedResults: Array<any> = milvusResp.data.data
 
     const uniqueKeys = new Map();
