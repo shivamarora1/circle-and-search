@@ -1,8 +1,10 @@
 Circle to Search is a vector database powered feature that allows you to quickly search for information about what you see on your images, using a simple gesture with your finger or mouse pointer. 
 
-### 👉 Live [Demo](https://frontend-shivamarora1s-projects.vercel.app/):
+### 👉 Live Demo:
+[https://frontend-shivamarora1s-projects.vercel.app/](https://frontend-shivamarora1s-projects.vercel.app/)
 
 ## Technologies used:
+![icon](https://github.com/user-attachments/assets/04f0a5a1-cc01-44dc-bc96-7e33d5fd162f)
 
 
 ## Running in local:
