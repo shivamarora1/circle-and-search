@@ -5,7 +5,11 @@ Circle to Search is a vector database powered feature that allows you to quickly
 <center><img src="https://github.com/user-attachments/assets/b160bdb9-af46-41f5-94f4-6c84c92f86f5" heigth=600 width=800></img></center>
 
  👉 <b>Live Demo:</b> [https://frontend-shivamarora1s-projects.vercel.app/](https://frontend-shivamarora1s-projects.vercel.app/)
- 
+
+ ## Architecture
+![architecture](https://github.com/user-attachments/assets/6dedaa27-5b08-4579-a246-c8e8d74a0fad)
+
+
 ## Running in local:
 1. Clone the repo.
 2. Run Frontend
