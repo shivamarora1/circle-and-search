@@ -9,6 +9,12 @@ Circle to Search is a vector database powered feature that allows you to quickly
  ## Architecture
 ![architecture](https://github.com/user-attachments/assets/6dedaa27-5b08-4579-a246-c8e8d74a0fad)
 
+Embeddings of images along with their meta are stored inside Milvus vector database. Image embeddings are generated using titan multi embeddings generation model.
+
+1. Image from frontend is sent to backend.
+2. Backend generates embeddings of uploaded image using AWS Bedrock Titan Embedding generation model.
+3. Vector Similarity search is performed using these generated embeddings and Milvus vector query.
+4. Fetched results (Product image, Price, Link) are returned to frontend.
 
 ## Running in local:
 1. Clone the repo.
