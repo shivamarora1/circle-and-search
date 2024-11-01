@@ -2,7 +2,8 @@ Circle to Search is a vector database powered feature that allows you to quickly
 
 ![icon](https://github.com/user-attachments/assets/04f0a5a1-cc01-44dc-bc96-7e33d5fd162f)
 
-<center><img src="https://github.com/user-attachments/assets/b160bdb9-af46-41f5-94f4-6c84c92f86f5" heigth=600 width=800></img></center>
+<center><img src="https://github.com/user-attachments/assets/34da6c9f-5452-4b8f-b137-f5eedf0332e3" heigth=600 width=800></img></center>
+
 
  👉 <b>Live Demo:</b> [https://frontend-shivamarora1s-projects.vercel.app/](https://frontend-shivamarora1s-projects.vercel.app/)
 
@@ -30,28 +31,4 @@ ng serve
 cd backend
 npm install 
 vercel dev
-```
-
-
-```mermaid
----
-title: UI to Backend control flow
----
-flowchart LR
-    A[Cropped image from user] --> B[Backend]
-    B -- similarity search --> C[(Vector DB)]
-    C -- similar images with meta --> A
-```
-<hr>
-<br>
-
-
-```mermaid
----
-title: Vector Generation and Storage
----
-flowchart LR
-    A[[Images with meta]] --> B[Backend]
-    B -- Generate vectors --> C[(Vector DB)]
-
 ```
